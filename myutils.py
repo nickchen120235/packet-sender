@@ -66,3 +66,19 @@ def tcp_packet(source_port: int, dest_port: int, source_ip: str, dest_ip: str, s
   packet = source+dest+seq_arr+ack_arr+flag_arr+window+checksum+b'\x00\x00'
   print(f'packet: {packet}, length: {len(packet)}')
   return packet
+
+def ipv4_packet(protocol: int, ttl: int, source_ip: str, dest_ip: str) -> bytearray:
+  header = b'\x45\x00\x00\x28\xab\xcd\x00\x00' # ver | IHL | ToS | len | ID | flags | frag offest
+  source = ipToBytearray(source_ip)
+  print(f'source: {source}')
+  dest = ipToBytearray(dest_ip)
+  print(f'dest: {dest}')
+  pro_arr = bytearray.fromhex('{0:#0{1}x}'.format(protocol, 4)[2:])
+  print(f'pro_arr: {pro_arr}')
+  ttl_arr = bytearray.fromhex('{0:#0{1}x}'.format(ttl, 4)[2:])
+  print(f'ttl_arr: {ttl_arr}')
+  checksum = ip_checksum(header+ttl_arr+pro_arr, source, dest)
+  print(f'checksum: {checksum}')
+  packet = header+ttl_arr+pro_arr+checksum+source+dest
+  print(f'packet: {packet}, length: {len(packet)}')
+  return packet
