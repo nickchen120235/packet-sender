@@ -56,7 +56,7 @@ def tcp_packet(source_port: int, dest_port: int, source_ip: str, dest_ip: str, s
   ack_arr = bytearray.fromhex('{0:#0{1}x}'.format(ack_num, 10)[2:])
   print(f'ack_arr: {ack_arr}')
   flag = '0b01010000000' + ('1' if ack else '0') + '0' + ('1' if rst else '0') + ('1' if syn else '0') + ('1' if fin else '0')
-  print(f'flag: {flag}')
+  print(f'flag: {flag} (ack: {ack}, rst: {rst}, syn: {syn}, fin: {fin})')
   flag_arr = bytearray.fromhex(hex(int(flag, 2))[2:])
   print(f'flag_arr: {flag_arr}')
   window = b'\x71\x10'
