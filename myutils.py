@@ -46,7 +46,7 @@ def tcp_checksum(header: bytearray, source: bytearray, dest: bytearray) -> bytea
   check = 0xffff - (int(hex(sum)[-4:], 16) + carry)
   return bytearray.fromhex(hex(check)[-4:])
 
-def tcp_packet(source_port: int, dest_port: int, source_ip: str, dest_ip: str, seq_num: int, ack_num: int, **flags: bool) -> bytearray:
+def tcp_packet(source_port: int, dest_port: int, source_ip: str, dest_ip: str, seq_num: int, ack_num: int, ack: bool=False, rst: bool=False, syn: bool=False, fin: bool=False) -> bytearray:
   source = bytearray.fromhex('{0:#0{1}x}'.format(source_port, 6)[2:])
   print(f'source: {source}')
   dest = bytearray.fromhex('{0:#0{1}x}'.format(dest_port, 6)[2:])
@@ -55,7 +55,7 @@ def tcp_packet(source_port: int, dest_port: int, source_ip: str, dest_ip: str, s
   print(f'seq_arr: {seq_arr}')
   ack_arr = bytearray.fromhex('{0:#0{1}x}'.format(ack_num, 10)[2:])
   print(f'ack_arr: {ack_arr}')
-  flag = '0b01010000000' + ('1' if flags['ack'] else '0') + '0' + ('1' if flags['rst'] else '0') + ('1' if flags['syn'] else '0') + ('1' if flags['fin'] else '0')
+  flag = '0b01010000000' + ('1' if ack else '0') + '0' + ('1' if rst else '0') + ('1' if syn else '0') + ('1' if fin else '0')
   print(f'flag: {flag}')
   flag_arr = bytearray.fromhex(hex(int(flag, 2))[2:])
   print(f'flag_arr: {flag_arr}')
@@ -64,6 +64,5 @@ def tcp_packet(source_port: int, dest_port: int, source_ip: str, dest_ip: str, s
   checksum = tcp_checksum(source+dest+seq_arr+ack_arr+flag_arr+window, ipToBytearray(source_ip), ipToBytearray(dest_ip))
   print(f'checksum: {checksum}')
   packet = source+dest+seq_arr+ack_arr+flag_arr+window+checksum+b'\x00\x00'
-  print(f'packet: {packet}')
-
+  print(f'packet: {packet}, length: {len(packet)}')
   return packet
