@@ -82,3 +82,9 @@ def ipv4_packet(protocol: int, ttl: int, source_ip: str, dest_ip: str) -> bytear
   packet = header+ttl_arr+pro_arr+checksum+source+dest
   print(f'packet: {packet}, length: {len(packet)}')
   return packet
+
+def macToBytearray(mac: str) -> bytearray:
+  return bytearray.fromhex(mac.replace(':', ''))
+
+def ether_packet(dest_mac: str,src_mac: str) -> bytearray:
+  return macToBytearray(dest_mac)+macToBytearray(src_mac)+b'\x08\x00'
