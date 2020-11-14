@@ -67,22 +67,6 @@ def tcp_packet(source_port: int, dest_port: int, source_ip: str, dest_ip: str, s
   print(f'packet: {packet}, length: {len(packet)}')
   return packet
 
-def ipv4_packet(protocol: int, ttl: int, source_ip: str, dest_ip: str) -> bytearray:
-  header = b'\x45\x00\x00\x28\xab\xcd\x00\x00' # ver | IHL | ToS | len | ID | flags | frag offest
-  source = ipToBytearray(source_ip)
-  print(f'source: {source}')
-  dest = ipToBytearray(dest_ip)
-  print(f'dest: {dest}')
-  pro_arr = bytearray.fromhex('{0:#0{1}x}'.format(protocol, 4)[2:])
-  print(f'pro_arr: {pro_arr}')
-  ttl_arr = bytearray.fromhex('{0:#0{1}x}'.format(ttl, 4)[2:])
-  print(f'ttl_arr: {ttl_arr}')
-  checksum = ip_checksum(header+ttl_arr+pro_arr, source, dest)
-  print(f'checksum: {checksum}')
-  packet = header+ttl_arr+pro_arr+checksum+source+dest
-  print(f'packet: {packet}, length: {len(packet)}')
-  return packet
-
 def macToBytearray(mac: str) -> bytearray:
   return bytearray.fromhex(mac.replace(':', ''))
 
@@ -205,4 +189,17 @@ def udp_packet(source_port: int, dest_port: int, source_ip: str, dest_ip: str) -
   print(f'checksum: {checksum}')
   packet = source + dest + length + checksum
   print(f'packet: {packet}, length: {len(packet)}')
+  return packet
+
+def ipv4_packet(protocol: int, ttl: int, src: str, dest: str, nextHeader: bytearray) -> bytearray:
+  ver_IHL_TOS = b'\x45\x00'
+  length = (20+len(nextHeader)).to_bytes(2, 'big')
+  ID = b'\xde\xad'
+  flags = b'\x00\x00'
+  TTL = ttl.to_bytes(1, 'big')
+  proto = protocol.to_bytes(1, 'big')
+  srcIP = ipToBytearray(src)
+  destIP = ipToBytearray(dest)
+  checksum = ip_checksum(ver_IHL_TOS+length+ID+flags+TTL+proto, srcIP, destIP)
+  packet = ver_IHL_TOS+length+ID+flags+TTL+proto+checksum+srcIP+destIP
   return packet
