@@ -175,3 +175,34 @@ def unpackage(arr: bytearray) -> dict:
       'checksum': TCPchecksum
     }
   }
+def udp_checksum(header: bytearray, source: bytearray, dest: bytearray) -> bytearray:
+  arr = [n for n in (header+source+dest)]
+  print('header: {}'.format(header))
+  print('source: {}'.format(source))
+  print('dest: {}'.format(dest))
+  print('arr: {}'.format(arr))
+  sum = 0
+
+  sum += 8 # UDP Length
+  sum += 17 # IPPROTO_UDP
+  for i in range(0, len(arr), 2):
+    print('*****************************')
+    sum += (arr[i] << 8) + arr[i+1]
+    print('[{}]: {}'.format(i, arr[i]))
+    print('[{}]: {}'.format(i+1, arr[i+1]))
+    print('sum = {}'.format(hex(sum)))
+  carry = int(hex(sum)[:-4], 16)
+  check = 0xffff - (int(hex(sum)[-4:], 16) + carry)
+  return bytearray.fromhex(hex(check)[-4:])
+
+def udp_packet(source_port: int, dest_port: int, source_ip: str, dest_ip: str) -> bytearray:
+  source = bytearray.fromhex('{0:#0{1}x}'.format(source_port, 6)[2:])
+  print(f'source: {source}')
+  dest = bytearray.fromhex('{0:#0{1}x}'.format(dest_port, 6)[2:])
+  print(f'dest: {dest}')
+  length = b'\x00\x08'
+  checksum = udp_checksum(source+dest+length, ipToBytearray(source_ip), ipToBytearray(dest_ip))
+  print(f'checksum: {checksum}')
+  packet = source + dest + length + checksum
+  print(f'packet: {packet}, length: {len(packet)}')
+  return packet
