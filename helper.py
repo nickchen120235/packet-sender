@@ -27,7 +27,7 @@ class Unpacker:
     return {
       'dest': self._ether[0:6].hex(':'),
       'src': self._ether[6:12].hex(':'),
-      'proto': '0x'+self._ether[13:14].hex()
+      'proto': '0x'+self._ether[12:14].hex()
     }
 
   def ipv4(self) -> dict:
