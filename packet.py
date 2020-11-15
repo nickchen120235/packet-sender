@@ -97,3 +97,24 @@ class ARP:
     THA = b'\xff\xff\xff\xff\xff\xff'
     TPA = _IPv4(dest_ip).toBytes()
     return HTYPE+PTYPE+HLEN+PLEN+OP+SHA+SPA+THA+TPA
+
+class ICMP: 
+  def __init__(self) -> None:
+    pass
+
+  def checksum(self) -> bytes:
+    arr = [n for n in self._header]
+    sum = 0
+    for i in range(0, len(arr), 2):
+      sum += (arr[i] << 8) + arr[i+1]
+    carry = int(hex(sum)[:-4], 16)
+    check = 0xffff - (int(hex(sum)[-4:], 16) + carry)
+    return check.to_bytes(2, 'big')
+  
+  def packet(self, type: int, code: int) -> bytes:
+    TYPE = type.to_bytes(1, 'big')
+    CODE = code.to_bytes(1, 'big')
+    DATA = b'\xde\xad\xbe\xef\xde\xad\xbe\xef\xde\xad\xbe\xef\xde\xad\xbe\xef\xde\xad\xbe\xef\xde\xad\xbe\xef\xde\xad\xbe\xef\xde\xad\xbe\xef'
+    self._header = TYPE+CODE+DATA
+    checksum = self.checksum()
+    return TYPE+CODE+checksum+DATA

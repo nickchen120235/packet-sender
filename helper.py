@@ -21,6 +21,7 @@ class Unpacker:
     self._ether = packet[0:14]
     self._ipv4 = packet[14:34]
     self._tcp = packet[34:]
+    self._icmp = packet[34:]
     self._arp = packet[14:]
 
   def ether(self) -> dict:
@@ -60,7 +61,7 @@ class Unpacker:
     }
 
   def arp(self) -> dict:
-    return{
+    return {
       'HTYPE': int(self._arp[0]) << 8 + int(self._arp[1]),
       'PTYPE': '0x'+self._arp[2:4].hex(),
       'HLEN': int(self._arp[4]),
@@ -70,4 +71,12 @@ class Unpacker:
       'SPA': f'{int(self._arp[14])}.{int(self._arp[15])}.{int(self._arp[16])}.{int(self._arp[17])}',
       'THA': self._arp[18:24].hex(':'),
       'TPA': f'{int(self._arp[24])}.{int(self._arp[25])}.{int(self._arp[26])}.{int(self._arp[27])}'
+    }
+
+  def icmp(self) -> dict:
+    return {
+      'TYPE': int(self._icmp[0]),
+      'CODE': int(self._icmp[1]),
+      'checksum': '0x'+self._icmp[2:4].hex(),
+      'DATA': '0x'+self._icmp[4:].hex()
     }
