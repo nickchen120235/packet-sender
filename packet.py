@@ -80,3 +80,20 @@ class UDP:
     length = b'\x00\x08'
     checksum = self.checksum()
     return self._srcPort+self._destPort+length+checksum
+
+class ARP:
+  def __init__(self, src_ip: str, src_mac: str) -> None:
+    self._ip = _IPv4(src_ip).toBytes()
+    self._mac = _MAC(src_mac).toBytes()
+  
+  def packet(self, protocol: int, dest_ip: str) -> bytes:
+    HTYPE = b'\x00\x01' # Ethernet
+    PTYPE = protocol.to_bytes(2, 'big')
+    HLEN = b'\x06' # MAC length
+    PLEN = b'\x04' # IPv4 length
+    OP = b'\x00\x01' # request
+    SHA = self._mac
+    SPA = self._ip
+    THA = b'\xff\xff\xff\xff\xff\xff'
+    TPA = _IPv4(dest_ip).toBytes()
+    return HTYPE+PTYPE+HLEN+PLEN+OP+SHA+SPA+THA+TPA
