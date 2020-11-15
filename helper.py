@@ -14,6 +14,7 @@ class _MAC:
 
 ETH_P_IP = 0x0800
 ETH_P_ARP = 0x0806
+ETH_P_ALL = 0x0003
 
 class Unpacker:
   def __init__(self, packet: bytes) -> None:
