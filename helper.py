@@ -21,11 +21,13 @@ class Unpacker:
     self._ether = packet[0:14]
     self._ipv4 = packet[14:34]
     self._tcp = packet[34:]
+    self._arp = packet[14:]
 
   def ether(self) -> dict:
     return {
       'dest': self._ether[0:6].hex(':'),
-      'src': self._ether[6:12].hex(':')
+      'src': self._ether[6:12].hex(':'),
+      'proto': '0x'+self._ether[13:14].hex()
     }
 
   def ipv4(self) -> dict:
@@ -55,4 +57,17 @@ class Unpacker:
       'fin': True if flags[15] == '1' else False,
       'window': (int(self._tcp[14]) << 8) + int(self._tcp[15]),
       'checksum': hex((int(self._tcp[16]) << 8) + int(self._tcp[17]))
+    }
+
+  def arp(self) -> dict:
+    return{
+      'HTYPE': int(self._arp[0]) << 8 + int(self._arp[1]),
+      'PTYPE': '0x'+self._arp[2:4].hex(),
+      'HLEN': int(self._arp[4]),
+      'PLEN': int(self._arp[5]),
+      'OP': int(self._arp[6]) << 8 + int(self._arp[7]),
+      'SHA': self._arp[8:14].hex(':'),
+      'SPA': f'{int(self._arp[14])}.{int(self._arp[15])}.{int(self._arp[16])}.{int(self._arp[17])}',
+      'THA': self._arp[18:24].hex(':'),
+      'TPA': f'{int(self._arp[24])}.{int(self._arp[25])}.{int(self._arp[26])}.{int(self._arp[27])}'
     }
