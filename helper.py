@@ -63,10 +63,10 @@ class Unpacker:
     
   def udp(self) -> dict:
     return {
-      'srcPort': (int(self._udp[0] << 8) + int(self._udp[1]),
-      'destPort': (int(self._udp[2] << 8) + int(self._udp[3]),
-      'length': (int(self._udp[4] << 8) + int(self._udp[5]),
-      'checksum': (int(self._udp[6] << 8) + int(self._udp[7])
+      'srcPort': (int(self._udp[0]) << 8) + int(self._udp[1]),
+      'destPort': (int(self._udp[2]) << 8) + int(self._udp[3]),
+      'length': (int(self._udp[4]) << 8) + int(self._udp[5]),
+      'checksum': (int(self._udp[6]) << 8) + int(self._udp[7])
     }
 
   def arp(self) -> dict:
@@ -94,5 +94,5 @@ def check_ip(ip: str) -> bool:
   arr = [int(n) for n in ip.split('.')]
   for n in arr:
     if n > 255: return False
-  if n[0] >= 224: return False
+  if arr[0] >= 224: return False
   return True
