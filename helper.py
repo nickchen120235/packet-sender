@@ -89,3 +89,10 @@ class Unpacker:
       'checksum': '0x'+self._icmp[2:4].hex(),
       'DATA': '0x'+self._icmp[4:].hex()
     }
+
+def check_ip(ip: str) -> bool:
+  arr = [int(n) for n in ip.split('.')]
+  for n in arr:
+    if n > 255: return False
+  if n[0] >= 224: return False
+  return True
