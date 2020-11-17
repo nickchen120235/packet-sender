@@ -26,8 +26,6 @@ class Unpacker:
     self._arp = packet[14:]
 
   def protocol(self) -> str:
-    print(f'Ether: {self._ether[12:14]}')
-    print(f'IPv4: {self._ipv4[9:10]}')
     if self._ether[12:14] == b'\x08\x06': return 'ARP'
     elif self._ether[12:14] == b'\x08\x00':
       if self._ipv4[9:10] == b'\x01': return 'ICMP'
