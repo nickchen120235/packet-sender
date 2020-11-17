@@ -37,10 +37,10 @@ class Unpacker:
       'ver': int(self._ipv4[0]) >> 4,
       'IHL': int(self._ipv4[0]) - ((int(self._ipv4[0]) >> 4) << 4),
       'length': (int(self._ipv4[2] << 8)) + int(self._ipv4[3]),
-      'ID': hex((int(self._ipv4[4] << 8)) + int(self._ipv4[5])),
+      'ID': '0x'+self._ipv4[6:8].hex(),
       'ttl': int(self._ipv4[8]),
-      'protocol': hex(int(self._ipv4[9])),
-      'checksum': hex((int(self._ipv4[10] << 8)) + int(self._ipv4[11])),
+      'protocol': '0x'+self._ipv4[9:10].hex(),
+      'checksum': '0x'+self._ipv4[10:12].hex(),
       'src': f'{int(self._ipv4[12])}.{int(self._ipv4[13])}.{int(self._ipv4[14])}.{int(self._ipv4[15])}',
       'dest': f'{int(self._ipv4[16])}.{int(self._ipv4[17])}.{int(self._ipv4[18])}.{int(self._ipv4[19])}'
     }
@@ -58,7 +58,7 @@ class Unpacker:
       'syn': True if flags[14] == '1' else False,
       'fin': True if flags[15] == '1' else False,
       'window': (int(self._tcp[14]) << 8) + int(self._tcp[15]),
-      'checksum': hex((int(self._tcp[16]) << 8) + int(self._tcp[17]))
+      'checksum': '0x'+self._tcp[16:18].hex()
     }
     
   def udp(self) -> dict:
@@ -66,7 +66,7 @@ class Unpacker:
       'srcPort': (int(self._udp[0]) << 8) + int(self._udp[1]),
       'destPort': (int(self._udp[2]) << 8) + int(self._udp[3]),
       'length': (int(self._udp[4]) << 8) + int(self._udp[5]),
-      'checksum': (int(self._udp[6]) << 8) + int(self._udp[7])
+      'checksum': '0x'+self._udp[6:8].hex()
     }
 
   def arp(self) -> dict:
