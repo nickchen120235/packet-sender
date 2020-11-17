@@ -25,6 +25,18 @@ class Unpacker:
     self._icmp = packet[34:]
     self._arp = packet[14:]
 
+  def protocol(self) -> str:
+    print(f'Ether: {self._ether[12:14]}')
+    print(f'IPv4: {self._ipv4[9:10]}')
+    if self._ether[12:14] == b'\x08\x06': return 'ARP'
+    elif self._ether[12:14] == b'\x08\x00':
+      if self._ipv4[9:10] == b'\x01': return 'ICMP'
+      elif self._ipv4[9:10] == b'\x06': return 'TCP'
+      elif self._ipv4[9:10] == b'\x11': return 'UDP'
+      else: return 'Unknown'
+    else: return 'Unknown'
+      
+
   def ether(self) -> dict:
     return {
       'dest': self._ether[0:6].hex(':'),
