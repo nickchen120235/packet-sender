@@ -21,6 +21,7 @@ class Unpacker:
     self._ether = packet[0:14]
     self._ipv4 = packet[14:34]
     self._tcp = packet[34:]
+    self._udp = packet[34:]
     self._icmp = packet[34:]
     self._arp = packet[14:]
 
@@ -58,6 +59,14 @@ class Unpacker:
       'fin': True if flags[15] == '1' else False,
       'window': (int(self._tcp[14]) << 8) + int(self._tcp[15]),
       'checksum': hex((int(self._tcp[16]) << 8) + int(self._tcp[17]))
+    }
+    
+  def udp(self) -> dict:
+    return {
+      'srcPort': (int(self._udp[0] << 8) + int(self._udp[1]),
+      'destPort': (int(self._udp[2] << 8) + int(self._udp[3]),
+      'length': (int(self._udp[4] << 8) + int(self._udp[5]),
+      'checksum': (int(self._udp[6] << 8) + int(self._udp[7])
     }
 
   def arp(self) -> dict:
