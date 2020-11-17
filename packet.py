@@ -10,8 +10,8 @@ class IPv4:
     sum = 0
     for i in range(0, len(arr), 2):
       sum += (arr[i] << 8) + arr[i+1]
-    carry = int(hex(sum)[:-4], 16)
-    check = 0xffff - (int(hex(sum)[-4:], 16) + carry)
+    carry = int(hex(sum)[:-4], 16) if len(hex(sum)[2:]) > 4 else 0
+    check = 0xffff - (int(hex(sum)[-4:] if len(hex(sum)[2:]) > 4 else hex(sum), 16) + carry)
     return check.to_bytes(2, 'big')
 
   def packet(self, protocol: int, ttl: int, nextHeader: bytes) -> bytes:
@@ -38,8 +38,8 @@ class TCP:
     sum = 26 # protocol (6) + length (20)
     for i in range(0, len(arr), 2):
       sum += (arr[i] << 8) + arr[i+1]
-    carry = int(hex(sum)[:-4], 16)
-    check = 0xffff - (int(hex(sum)[-4:], 16) + carry)
+    carry = int(hex(sum)[:-4], 16) if len(hex(sum)[2:]) > 4 else 0
+    check = 0xffff - (int(hex(sum)[-4:] if len(hex(sum)[2:]) else hex(sum), 16) + carry)
     return check.to_bytes(2, 'big')
 
   def packet(self, seq_num: int, ack_num: int, ack: bool=False, rst: bool=False, syn: bool=False, fin: bool=False) -> bytes:
@@ -72,8 +72,8 @@ class UDP:
     sum = 25 # protocol (17) + length (8)
     for i in range(0, len(arr), 2):
       sum += (arr[i] << 8) + arr[i+1]
-    carry = int(hex(sum)[:-4], 16)
-    check = 0xffff - (int(hex(sum)[-4:], 16) + carry)
+    carry = int(hex(sum)[:-4], 16) if len(hex(sum)[2:]) > 4 else 0
+    check = 0xffff - (int(hex(sum)[-4:] if len(hex(sum)[2:]) else hex(sum), 16) + carry)
     return check.to_bytes(2, 'big')
 
   def packet(self) -> bytes:
@@ -107,8 +107,8 @@ class ICMP:
     sum = 0
     for i in range(0, len(arr), 2):
       sum += (arr[i] << 8) + arr[i+1]
-    carry = int(hex(sum)[:-4], 16)
-    check = 0xffff - (int(hex(sum)[-4:], 16) + carry)
+    carry = int(hex(sum)[:-4], 16) if len(hex(sum)[2:]) > 4 else 0
+    check = 0xffff - (int(hex(sum)[-4:] if len(hex(sum)[2:]) else hex(sum), 16) + carry)
     return check.to_bytes(2, 'big')
   
   def packet(self, type: int, code: int) -> bytes:
