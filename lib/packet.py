@@ -1,4 +1,4 @@
-from helper import _IPv4, _MAC
+from lib.helper import _IPv4, _MAC
 
 class IPv4:
   def __init__(self, src_ip: str, dest_ip: str) -> None:
