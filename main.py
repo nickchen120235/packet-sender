@@ -1,18 +1,20 @@
-import sys
-from PyQt5.QtWidgets import QApplication, QWidget, QLabel
+from PySide2.QtWidgets import *
 
-def window():
-  app = QApplication(sys.argv)
-  widget = QWidget()
+from views.ARP import ARPView
 
-  text = QLabel(widget)
-  text.setText('Hello World!')
-  text.move(110, 85)
+class MainView(QTabWidget):
+  def __init__(self, parent = None):
+    super(MainView, self).__init__(parent)
+    self.tab1 = ARPView()
 
-  widget.setGeometry(50, 50, 320, 200)
-  widget.setWindowTitle('Test')
-  widget.show()
-  sys.exit(app.exec_())
+    self.addTab(self.tab1, 'ARP')
 
-if __name__ == '__main__':
-  window()
+    self.setWindowTitle('Packet Sender')
+
+def main():
+  app = QApplication([])
+  test = MainView()
+  test.show()
+  app.exec_()
+
+if __name__ == '__main__': main()
