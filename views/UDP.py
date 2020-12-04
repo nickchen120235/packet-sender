@@ -45,7 +45,7 @@ class UDPView(QWidget):
     setupContent.addRow('Destination IP: ', destIP)
 
     destPort = QLineEdit()
-    setupContent.addRow('Local Port: ', destPort)
+    setupContent.addRow('Destination Port: ', destPort)
 
     sendBtn = QPushButton('Send')
     setupContent.addWidget(sendBtn)
