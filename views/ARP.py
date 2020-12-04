@@ -20,6 +20,7 @@ class ARPView(QWidget):
       localIP: QLabel
       localMAC: QLabel
       targetIP: QLineEdit
+      sendBtn: QPushButton
     """
     setup = QGroupBox('Setup')
     layout.addWidget(setup)
@@ -41,6 +42,9 @@ class ARPView(QWidget):
     
     targetIP = QLineEdit()
     setupContent.addRow('Target IP: ', targetIP)
+
+    sendBtn = QPushButton('Send')
+    setupContent.addWidget(sendBtn)
 
     """
     Subview: Result
