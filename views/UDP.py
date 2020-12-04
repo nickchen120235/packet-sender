@@ -21,6 +21,7 @@ class UDPView(QWidget):
       srcPort: QLineEdit
       destIP: QLineEdit
       destPort: QLineEdit
+      sendBtn: QPushButton
     """
     setup = QGroupBox('Setup')
     layout.addWidget(setup)
