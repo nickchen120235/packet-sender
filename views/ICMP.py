@@ -33,6 +33,7 @@ class ICMPView(QWidget):
     layout.addWidget(setup)
     setupContent = QFormLayout()
     setup.setLayout(setupContent)
+    setup.setFixedHeight(200)
 
     iface = QHBoxLayout()
     ifaceInput = QLineEdit()
@@ -65,9 +66,9 @@ class ICMPView(QWidget):
     """
     req = QGroupBox('Request')
     layout.addWidget(req)
-    reqContent = QVBoxLayout()
-    reqContent.addStretch(5)
+    reqContent = QHBoxLayout()
     req.setLayout(reqContent)
+    req.setFixedHeight(300)
 
     req_ether = EtherInfo()
     reqContent.addWidget(req_ether)
@@ -84,8 +85,9 @@ class ICMPView(QWidget):
     """
     res = QGroupBox('Result')
     layout.addWidget(res)
-    resContent = QVBoxLayout()
+    resContent = QHBoxLayout()
     res.setLayout(resContent)
+    res.setFixedHeight(300)
 
     res_ether = EtherInfo()
     resContent.addWidget(res_ether)
