@@ -4,22 +4,25 @@ from views.ARP import ARPView
 from views.UDP import UDPView
 from views.ICMP import ICMPView
 
-class MainView(QTabWidget):
+class MainView(QMainWindow):
   def __init__(self, parent = None):
     super(MainView, self).__init__(parent)
-    self.tab1 = ARPView()
-    self.tab3 = UDPView()
-    self.tab4 = ICMPView()
+    tab = QTabWidget()
+    self.setCentralWidget(tab)
+    tab1 = ARPView()
+    tab3 = UDPView()
+    tab4 = ICMPView()
 
-    self.addTab(self.tab1, 'ARP')
-    self.addTab(self.tab3, 'UDP')
-    self.addTab(self.tab4, 'ICMP')
+    tab.addTab(tab1, 'ARP')
+    tab.addTab(tab3, 'UDP')
+    tab.addTab(tab4, 'ICMP')
 
     self.setWindowTitle('Packet Sender')
 
 def main():
   app = QApplication([])
   test = MainView()
+  test.setFixedSize(1000, 850)
   test.show()
   app.exec_()
 
