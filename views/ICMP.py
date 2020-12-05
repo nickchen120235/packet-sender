@@ -33,7 +33,7 @@ class ICMPView(QWidget):
     layout.addWidget(setup)
     setupContent = QFormLayout()
     setup.setLayout(setupContent)
-    setup.setFixedHeight(200)
+    setup.setFixedHeight(300)
 
     iface = QHBoxLayout()
     ifaceInput = QLineEdit()
