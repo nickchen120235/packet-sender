@@ -7,6 +7,10 @@ Widgets:
 
 from PySide2.QtWidgets import *
 
+from views.widgets.info.ether import EtherInfo
+from views.widgets.info.ipv4 import IPv4Info
+from views.widgets.info.udp import UDPInfo
+
 class UDPView(QWidget):
   def __init__(self):
     super(UDPView, self).__init__()
@@ -27,6 +31,7 @@ class UDPView(QWidget):
     layout.addWidget(setup)
     setupContent = QFormLayout()
     setup.setLayout(setupContent)
+    setup.setFixedHeight(200)
 
     iface = QHBoxLayout()
     ifaceInput = QLineEdit()
@@ -50,15 +55,40 @@ class UDPView(QWidget):
     sendBtn = QPushButton('Send')
     setupContent.addWidget(sendBtn)
 
-    """
-    Subview: Result
+    """Subview: Request
     Widgets:
-      checksum: QLabel
+      ether: QGroupBox
+      ip: QGroupBox
+      udp: QGroupBox
     """
-    res = QGroupBox('Result')
-    layout.addWidget(res)
-    resContent = QFormLayout()
-    res.setLayout(resContent)
+    req = QGroupBox('Request')
+    layout.addWidget(req)
+    reqContent = QHBoxLayout()
+    req.setLayout(reqContent)
+    req.setFixedHeight(300)
 
-    checksum = QLabel('Unknown')
-    resContent.addRow('Checksum: ', checksum)
+    req_ether = EtherInfo()
+    reqContent.addWidget(req_ether)
+    req_ipv4 = IPv4Info()
+    reqContent.addWidget(req_ipv4)
+    req_udp = UDPInfo()
+    reqContent.addWidget(req_udp)
+
+    """Subview: Response
+    Widgets:
+      ether: QGroupBox
+      ip: QGroupBox
+      udp: QGroupBox
+    """
+    res = QGroupBox('Response')
+    layout.addWidget(res)
+    resContent = QHBoxLayout()
+    res.setLayout(resContent)
+    res.setFixedHeight(300)
+
+    res_ether = EtherInfo()
+    resContent.addWidget(res_ether)
+    res_ipv4 = IPv4Info()
+    resContent.addWidget(res_ipv4)
+    res_udp = UDPInfo()
+    resContent.addWidget(res_udp)

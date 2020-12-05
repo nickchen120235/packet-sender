@@ -7,6 +7,9 @@ Widgets:
 
 from PySide2.QtWidgets import *
 
+from views.widgets.info.ether import EtherInfo
+from views.widgets.info.arp import ARPInfo
+
 class ARPView(QWidget):
   def __init__(self):
     super(ARPView, self).__init__()
@@ -26,6 +29,7 @@ class ARPView(QWidget):
     layout.addWidget(setup)
     setupContent = QFormLayout()
     setup.setLayout(setupContent)
+    setup.setFixedHeight(200)
 
     iface = QHBoxLayout()
     ifaceInput = QLineEdit()
@@ -47,6 +51,23 @@ class ARPView(QWidget):
     setupContent.addWidget(sendBtn)
 
     """
+    Subview: Request
+    Widgets:
+      ether: QGroupBox
+      arp: QGroupBox
+    """
+    req = QGroupBox('Request')
+    layout.addWidget(req)
+    reqContent = QHBoxLayout()
+    req.setLayout(reqContent)
+    req.setFixedHeight(300)
+
+    req_ether = EtherInfo()
+    reqContent.addWidget(req_ether)
+    req_arp = ARPInfo()
+    reqContent.addWidget(req_arp)
+
+    """
     Subview: Result
     Widgets:
       srcIP: QLabel
@@ -54,16 +75,14 @@ class ARPView(QWidget):
       destIP: QLabel
       destMAC: QLabel
     """
-    res = QGroupBox('Result')
+    res = QGroupBox('Response')
     layout.addWidget(res)
-    resContent = QFormLayout()
+    resContent = QHBoxLayout()
     res.setLayout(resContent)
+    res.setFixedHeight(300)
 
-    srcIP = QLabel()
-    resContent.addRow('Source IP: ', srcIP)
-    srcMAC = QLabel()
-    resContent.addRow('Source MAC: ', srcMAC)
-    destIP = QLabel()
-    resContent.addRow('Destination IP: ', destIP)
-    destMAC = QLabel()
-    resContent.addRow('Destination MAC: ', destMAC)
+    res_ether = EtherInfo()
+    resContent.addWidget(res_ether)
+    res_arp = ARPInfo()
+    resContent.addWidget(res_arp)
+    
