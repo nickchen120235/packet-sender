@@ -81,11 +81,11 @@ class Unpacker:
 
   def arp(self) -> dict:
     return {
-      'HTYPE': int(self._arp[0]) << 8 + int(self._arp[1]),
+      'HTYPE': (int(self._arp[0]) << 8) + int(self._arp[1]),
       'PTYPE': '0x'+self._arp[2:4].hex(),
       'HLEN': int(self._arp[4]),
       'PLEN': int(self._arp[5]),
-      'OP': int(self._arp[6]) << 8 + int(self._arp[7]),
+      'OP': (int(self._arp[6]) << 8) + int(self._arp[7]),
       'SHA': self._arp[8:14].hex(':'),
       'SPA': f'{int(self._arp[14])}.{int(self._arp[15])}.{int(self._arp[16])}.{int(self._arp[17])}',
       'THA': self._arp[18:24].hex(':'),
