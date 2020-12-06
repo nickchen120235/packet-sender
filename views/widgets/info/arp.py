@@ -31,11 +31,11 @@ class ARPInfo(QGroupBox):
     content.addRow('Destination IP: ', self.TPA)
 
   def setInfo(self, arp: dict):
-    self.HTYPE.setText(arp['HTYPE'])
-    self.PTYPE.setText(arp['PTYPE'])
-    self.HLEN.setText(arp['HLEN'])
-    self.PLEN.setText(arp['PLEN'])
-    self.OP.setText(arp['OP'])
+    self.HTYPE.setText(str(arp['HTYPE']))
+    self.PTYPE.setText((arp['PTYPE']))
+    self.HLEN.setText(str(arp['HLEN']))
+    self.PLEN.setText(str(arp['PLEN']))
+    self.OP.setText(str(arp['OP']))
     self.SHA.setText(arp['SHA'])
     self.SPA.setText(arp['SPA'])
     self.THA.setText(arp['THA'])
