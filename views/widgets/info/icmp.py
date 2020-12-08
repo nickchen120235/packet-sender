@@ -3,7 +3,7 @@ Widget: ICMPInfo
 Type: QGroupBox
 """
 
-from PySide2.QtWidgets import QGroupBox, QLabel, QFormLayout
+from PySide2.QtWidgets import QGroupBox, QLabel, QFormLayout, QTextBrowser
 
 class ICMPInfo(QGroupBox):
   def __init__(self):
@@ -17,7 +17,7 @@ class ICMPInfo(QGroupBox):
     content.addRow('Code: ', self.CODE)
     self.checksum = QLabel()
     content.addRow('Checksum: ', self.checksum)
-    self.DATA = QLabel()
+    self.DATA = QTextBrowser()
     content.addRow('Data: ', self.DATA)
 
   def setInfo(self, icmp: dict):
