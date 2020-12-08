@@ -31,11 +31,11 @@ class IPv4Info(QGroupBox):
     content.addRow('Destination IP: ', self.dest)
 
   def setInfo(self, ip: dict):
-    self.ver.setText(ip['ver'])
-    self.ihl.setText(ip['IHL'])
-    self.length.setText(ip['length'])
+    self.ver.setText(str(ip['ver']))
+    self.ihl.setText(str(ip['IHL']))
+    self.length.setText(str(ip['length']))
     self.id.setText(ip['ID'])
-    self.ttl.setText(ip['ttl'])
+    self.ttl.setText(str(ip['ttl']))
     self.proto.setText(ip['protocol'])
     self.checksum.setText(ip['checksum'])
     self.src.setText(ip['src'])

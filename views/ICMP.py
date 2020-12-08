@@ -6,10 +6,15 @@ Widgets:
 """
 
 from PySide2.QtWidgets import *
+import socket
+import netifaces
 
 from views.widgets.info.ether import EtherInfo
 from views.widgets.info.ipv4 import IPv4Info
 from views.widgets.info.icmp import ICMPInfo
+
+from lib.packet import Ether, IPv4, ICMP, ARP
+from lib.helper import Unpacker, ETH_P_IP, ETH_P_ARP
 
 _ops = ['Echo Reply (0)', 'Echo Request (8)']
 
@@ -36,24 +41,24 @@ class ICMPView(QWidget):
     setup.setFixedHeight(300)
 
     iface = QHBoxLayout()
-    ifaceInput = QLineEdit()
-    iface.addWidget(ifaceInput)
+    self.ifaceInput = QLineEdit()
+    iface.addWidget(self.ifaceInput)
     ifaceSet = QPushButton('Set')
     iface.addWidget(ifaceSet)
     setupContent.addRow('Interface: ', iface)
 
-    localIP = QLabel('Unknown')
-    setupContent.addRow('Local IP: ', localIP)
+    self.localIP = QLabel('Unknown')
+    setupContent.addRow('Local IP: ', self.localIP)
 
-    tarIP = QLineEdit()
-    setupContent.addRow('Target IP: ', tarIP)
+    self.tarIP = QLineEdit()
+    setupContent.addRow('Target IP: ', self.tarIP)
 
-    op = QComboBox()
-    op.addItems(_ops)
-    setupContent.addRow('Type: ', op)
+    self.op = QComboBox()
+    self.op.addItems(_ops)
+    setupContent.addRow('Type: ', self.op)
 
-    code = QLineEdit()
-    setupContent.addRow('Code: ', code)
+    self.code = QLineEdit()
+    setupContent.addRow('Code: ', self.code)
 
     sendBtn = QPushButton('Send')
     setupContent.addWidget(sendBtn)
@@ -70,12 +75,12 @@ class ICMPView(QWidget):
     req.setLayout(reqContent)
     req.setFixedHeight(300)
 
-    req_ether = EtherInfo()
-    reqContent.addWidget(req_ether)
-    req_ipv4 = IPv4Info()
-    reqContent.addWidget(req_ipv4)
-    req_icmp = ICMPInfo()
-    reqContent.addWidget(req_icmp)
+    self.req_ether = EtherInfo()
+    reqContent.addWidget(self.req_ether)
+    self.req_ipv4 = IPv4Info()
+    reqContent.addWidget(self.req_ipv4)
+    self.req_icmp = ICMPInfo()
+    reqContent.addWidget(self.req_icmp)
 
     """Subview: Result
     Widgets:
@@ -89,9 +94,65 @@ class ICMPView(QWidget):
     res.setLayout(resContent)
     res.setFixedHeight(300)
 
-    res_ether = EtherInfo()
-    resContent.addWidget(res_ether)
-    res_ipv4 = IPv4Info()
-    resContent.addWidget(res_ipv4)
-    res_icmp = ICMPInfo()
-    resContent.addWidget(res_icmp)
+    self.res_ether = EtherInfo()
+    resContent.addWidget(self.res_ether)
+    self.res_ipv4 = IPv4Info()
+    resContent.addWidget(self.res_ipv4)
+    self.res_icmp = ICMPInfo()
+    resContent.addWidget(self.res_icmp)
+
+    """
+    Signals  -> Slots
+    ifaceSet -> getLocalStat
+    sendBtn  -> send
+    """
+    ifaceSet.clicked.connect(self.getLocalStat)
+    sendBtn.clicked.connect(self.send)
+
+  # slots
+  def getLocalStat(self):
+    print('getLocalStat')
+    print(f'ifaceInput: {self.ifaceInput.text()}')
+    try:
+      self.ip = netifaces.ifaddresses(self.ifaceInput.text())[netifaces.AF_INET][0]['addr']
+      print(f'IP: {self.ip}')
+      self.localIP.setText(self.ip)
+      self.mac = netifaces.ifaddresses(self.ifaceInput.text())[netifaces.AF_LINK][0]['addr']
+      print(f'MAC: {self.mac}')
+    except:
+      msg = QMessageBox()
+      msg.setIcon(QMessageBox.Warning)
+      msg.setWindowTitle('Invalid Interface')
+      msg.setText(f'netifaces cannot find info of "{self.ifaceInput.text()}".')
+      msg.setInformativeText('Try "ip addr" in your terminal to get a valid interface.')
+      msg.exec_()
+
+  def send(self):
+    print('send')
+    tar = self.tarIP.text()
+    print(f'Target IP: {tar}')
+    # getmac
+    s = socket.socket(socket.AF_PACKET, socket.SOCK_RAW, socket.htons(ETH_P_ARP))
+    p = Ether(self.mac, 'FF:FF:FF:FF:FF:FF').packet(ETH_P_ARP)+ARP(self.ip, self.mac).packet(ETH_P_IP, tar)
+    s.bind((self.ifaceInput.text(), 0))
+    s.send(p)
+    mac = Unpacker(s.recv(1024)).arp()['SHA']
+    s.close()
+    # mac ok
+    print(f'Target MAC: {mac}')
+    eth = Ether(self.mac, mac).packet(ETH_P_IP)
+    print(f'Type: [{self.op.currentIndex()}] {self.op.currentText()}')
+    t = 0 if self.op.currentIndex() == 0 else 8
+    icmp = ICMP().packet(t, int(self.code.text()))
+    ipv4 = IPv4(self.ip, tar).packet(socket.IPPROTO_ICMP, 64, icmp)
+    p = eth+ipv4+icmp
+    self.req_ether.setInfo(Unpacker(p).ether())
+    self.req_ipv4.setInfo(Unpacker(p).ipv4())
+    self.req_icmp.setInfo(Unpacker(p).icmp())
+    with socket.socket(socket.AF_PACKET, socket.SOCK_RAW, socket.htons(ETH_P_IP)) as s:
+      s.bind((self.ifaceInput.text(), 0))
+      s.send(p)
+      ru = Unpacker(s.recv(1024))
+      self.res_ether.setInfo(ru.ether())
+      self.res_ipv4.setInfo(ru.ipv4())
+      self.res_icmp.setInfo(ru.icmp())
