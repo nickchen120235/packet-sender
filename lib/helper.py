@@ -47,7 +47,7 @@ class Unpacker:
       'ver': int(self._ipv4[0]) >> 4,
       'IHL': int(self._ipv4[0]) - ((int(self._ipv4[0]) >> 4) << 4),
       'length': (int(self._ipv4[2] << 8)) + int(self._ipv4[3]),
-      'ID': '0x'+self._ipv4[6:8].hex(),
+      'ID': '0x'+self._ipv4[4:6].hex(),
       'ttl': int(self._ipv4[8]),
       'protocol': '0x'+self._ipv4[9:10].hex(),
       'checksum': '0x'+self._ipv4[10:12].hex(),
