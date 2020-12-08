@@ -17,7 +17,7 @@ class IPv4:
   def packet(self, protocol: int, ttl: int, nextHeader: bytes) -> bytes:
     ver_IHL_TOS = b'\x45\x00'
     length = (20+len(nextHeader)).to_bytes(2, 'big')
-    ID = b'\xde\xad'
+    ID = b'\xca\xfe'
     flags = b'\x00\x00'
     TTL = ttl.to_bytes(1, 'big')
     proto = protocol.to_bytes(1, 'big')
