@@ -29,15 +29,15 @@ class TCPInfo(QGroupBox):
     content.addRow('Checksum: ', self.checksum)
 
   def setInfo(self, tcp: dict):
-    self.src.setText(tcp['srcPort'])
-    self.dest.setText(tcp['destPort'])
-    self.seq_num.setText(tcp['seq_num'])
-    self.ack_num.setText(tcp['ack_num'])
-    self.offset.setText(tcp['offset'])
+    self.src.setText(str(tcp['srcPort']))
+    self.dest.setText(str(tcp['destPort']))
+    self.seq_num.setText(str(tcp['seq_num']))
+    self.ack_num.setText(str(tcp['ack_num']))
+    self.offset.setText(str(tcp['offset']))
     f  = 'ACK ' if tcp['ack'] else ''
     f += 'RST ' if tcp['rst'] else ''
     f += 'SYN ' if tcp['syn'] else ''
     f += 'FIN ' if tcp['fin'] else ''
     self.flag.setText(f)
-    self.windowSize.setText(tcp['window'])
+    self.windowSize.setText(str(tcp['window']))
     self.checksum.setText(tcp['checksum'])
