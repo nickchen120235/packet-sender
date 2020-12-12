@@ -106,3 +106,6 @@ def check_ip(ip: str) -> bool:
     if n > 255: return False
   if arr[0] >= 224: return False
   return True
+
+def iptables_rules(port: str) -> tuple:
+  return (f'iptables -I OUTPUT -p tcp --sport {port} --tcp-flags RST RST -j DROP', f'iptables -D OUTPUT -p tcp --sport {port} --tcp-flags RST RST -j DROP')

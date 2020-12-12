@@ -21,7 +21,7 @@ class UDPInfo(QGroupBox):
     content.addRow('Checksum: ', self.checksum)
 
   def setInfo(self, udp: dict):
-    self.src.setText(udp['srcPort'])
-    self.dest.setText(udp['destPort'])
-    self.length.setText(udp['length'])
+    self.src.setText(str(udp['srcPort']))
+    self.dest.setText(str(udp['destPort']))
+    self.length.setText(str(udp['length']))
     self.checksum.setText(udp['checksum'])

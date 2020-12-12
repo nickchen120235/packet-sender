@@ -6,10 +6,15 @@ Widgets:
 """
 
 from PySide2.QtWidgets import *
+import socket
+import netifaces
 
 from views.widgets.info.ether import EtherInfo
 from views.widgets.info.ipv4 import IPv4Info
 from views.widgets.info.udp import UDPInfo
+
+from lib.packet import Ether, IPv4, UDP, ARP
+from lib.helper import Unpacker, ETH_P_ARP, ETH_P_IP
 
 class UDPView(QWidget):
   def __init__(self):
@@ -34,23 +39,23 @@ class UDPView(QWidget):
     setup.setFixedHeight(300)
 
     iface = QHBoxLayout()
-    ifaceInput = QLineEdit()
-    iface.addWidget(ifaceInput)
+    self.ifaceInput = QLineEdit()
+    iface.addWidget(self.ifaceInput)
     ifaceSet = QPushButton('Set')
     iface.addWidget(ifaceSet)
     setupContent.addRow('Interface: ', iface)
 
-    srcIP = QLabel('Unknown')
-    setupContent.addRow('Local IP: ', srcIP)
+    self.srcIP = QLabel('Unknown')
+    setupContent.addRow('Local IP: ', self.srcIP)
 
-    srcPort = QLineEdit()
-    setupContent.addRow('Local Port: ', srcPort)
+    self.srcPort = QLineEdit()
+    setupContent.addRow('Local Port: ', self.srcPort)
 
-    destIP = QLineEdit()
-    setupContent.addRow('Target IP: ', destIP)
+    self.destIP = QLineEdit()
+    setupContent.addRow('Target IP: ', self.destIP)
 
-    destPort = QLineEdit()
-    setupContent.addRow('Target Port: ', destPort)
+    self.destPort = QLineEdit()
+    setupContent.addRow('Target Port: ', self.destPort)
 
     sendBtn = QPushButton('Send')
     setupContent.addWidget(sendBtn)
@@ -67,12 +72,12 @@ class UDPView(QWidget):
     req.setLayout(reqContent)
     req.setFixedHeight(300)
 
-    req_ether = EtherInfo()
-    reqContent.addWidget(req_ether)
-    req_ipv4 = IPv4Info()
-    reqContent.addWidget(req_ipv4)
-    req_udp = UDPInfo()
-    reqContent.addWidget(req_udp)
+    self.req_ether = EtherInfo()
+    reqContent.addWidget(self.req_ether)
+    self.req_ipv4 = IPv4Info()
+    reqContent.addWidget(self.req_ipv4)
+    self.req_udp = UDPInfo()
+    reqContent.addWidget(self.req_udp)
 
     """Subview: Response
     Widgets:
@@ -86,9 +91,60 @@ class UDPView(QWidget):
     res.setLayout(resContent)
     res.setFixedHeight(300)
 
-    res_ether = EtherInfo()
-    resContent.addWidget(res_ether)
-    res_ipv4 = IPv4Info()
-    resContent.addWidget(res_ipv4)
-    res_udp = UDPInfo()
-    resContent.addWidget(res_udp)
+    self.res_ether = EtherInfo()
+    resContent.addWidget(self.res_ether)
+    self.res_ipv4 = IPv4Info()
+    resContent.addWidget(self.res_ipv4)
+    self.res_udp = UDPInfo()
+    resContent.addWidget(self.res_udp)
+
+    """
+    Signals  -> Slots
+    ifaceSet -> getLocalStat
+    sendBtn  -> send
+    """
+    ifaceSet.clicked.connect(self.getLocalStat)
+    sendBtn.clicked.connect(self.send)
+
+  # slots
+  def getLocalStat(self):
+    print('getLocalStat')
+    print(f'ifaceInput: {self.ifaceInput.text()}')
+    try:
+      self.ip = netifaces.ifaddresses(self.ifaceInput.text())[netifaces.AF_INET][0]['addr']
+      print(f'IP: {self.ip}')
+      self.srcIP.setText(self.ip)
+      self.mac = netifaces.ifaddresses(self.ifaceInput.text())[netifaces.AF_LINK][0]['addr']
+      print(f'MAC: {self.mac}')
+    except:
+      msg = QMessageBox()
+      msg.setIcon(QMessageBox.Warning)
+      msg.setWindowTitle('Invalid Interface')
+      msg.setText(f'netifaces cannot find info of "{self.ifaceInput.text()}".')
+      msg.setInformativeText('Try "ip addr" in your terminal to get a valid interface.')
+      msg.exec_()
+    
+  def send(self):
+    print('send')
+    tar = self.destIP.text()
+    print(f'Target IP: {tar}')
+    # getmac
+    s = socket.socket(socket.AF_PACKET, socket.SOCK_RAW, socket.htons(ETH_P_ARP))
+    p = Ether(self.mac, 'FF:FF:FF:FF:FF:FF').packet(ETH_P_ARP)+ARP(self.ip, self.mac).packet(ETH_P_IP, tar)
+    s.bind((self.ifaceInput.text(), 0))
+    s.send(p)
+    mac = Unpacker(s.recv(1024)).arp()['SHA']
+    s.close()
+    # mac ok
+    print(f'Target MAC: {mac}')
+    eth = Ether(self.mac, mac).packet(ETH_P_IP)
+    udp = UDP(self.ip, int(self.srcPort.text()), self.destIP.text(), int(self.destPort.text())).packet()
+    ip = IPv4(self.ip, self.destIP.text()).packet(socket.IPPROTO_UDP, 64, udp)
+    packet = eth+ip+udp
+    u = Unpacker(packet)
+    self.req_ether.setInfo(u.ether())
+    self.req_ipv4.setInfo(u.ipv4())
+    self.req_udp.setInfo(u.udp())
+    with socket.socket(socket.AF_PACKET, socket.SOCK_RAW, socket.htons(ETH_P_IP)) as s:
+      s.bind((self.ifaceInput.text(), 0))
+      s.send(packet)
