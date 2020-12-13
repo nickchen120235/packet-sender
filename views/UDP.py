@@ -104,6 +104,7 @@ class UDPView(QWidget):
     sendBtn  -> send
     """
     ifaceSet.clicked.connect(self.getLocalStat)
+    self.ifaceInput.returnPressed.connect(self.getLocalStat)
     sendBtn.clicked.connect(self.send)
 
   # slots
