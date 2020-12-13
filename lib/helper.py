@@ -99,13 +99,17 @@ class Unpacker:
       'checksum': '0x'+self._icmp[2:4].hex(),
       'DATA': '0x'+self._icmp[4:].hex()
     }
-
+import re
 def check_ip(ip: str) -> bool:
-  arr = [int(n) for n in ip.split('.')]
-  for n in arr:
-    if n > 255: return False
-  if arr[0] >= 224: return False
+  m = re.search(r'^(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$', ip)
+  if m == None:return False
   return True
 
 def iptables_rules(port: str) -> tuple:
   return (f'iptables -I OUTPUT -p tcp --sport {port} --tcp-flags RST RST -j DROP', f'iptables -D OUTPUT -p tcp --sport {port} --tcp-flags RST RST -j DROP')
+
+# Exception class
+class InputCheckError(Exception):
+  def __init__(self, msg: list):
+    self.msg = msg
+    super().__init__(msg)

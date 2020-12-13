@@ -14,10 +14,12 @@ from views.widgets.info.ipv4 import IPv4Info
 from views.widgets.info.udp import UDPInfo
 
 from lib.packet import Ether, IPv4, UDP, ARP
-from lib.helper import Unpacker, ETH_P_ARP, ETH_P_IP
+from lib.helper import InputCheckError, Unpacker, ETH_P_ARP, ETH_P_IP, check_ip
 
 class UDPView(QWidget):
   def __init__(self):
+    self.ip = ''
+    self.mac = ''
     super(UDPView, self).__init__()
     layout = QVBoxLayout()
     self.setLayout(layout)
@@ -104,6 +106,7 @@ class UDPView(QWidget):
     sendBtn  -> send
     """
     ifaceSet.clicked.connect(self.getLocalStat)
+    self.ifaceInput.returnPressed.connect(self.getLocalStat)
     sendBtn.clicked.connect(self.send)
 
   # slots
@@ -128,23 +131,49 @@ class UDPView(QWidget):
     print('send')
     tar = self.destIP.text()
     print(f'Target IP: {tar}')
-    # getmac
-    s = socket.socket(socket.AF_PACKET, socket.SOCK_RAW, socket.htons(ETH_P_ARP))
-    p = Ether(self.mac, 'FF:FF:FF:FF:FF:FF').packet(ETH_P_ARP)+ARP(self.ip, self.mac).packet(ETH_P_IP, tar)
-    s.bind((self.ifaceInput.text(), 0))
-    s.send(p)
-    mac = Unpacker(s.recv(1024)).arp()['SHA']
-    s.close()
-    # mac ok
-    print(f'Target MAC: {mac}')
-    eth = Ether(self.mac, mac).packet(ETH_P_IP)
-    udp = UDP(self.ip, int(self.srcPort.text()), self.destIP.text(), int(self.destPort.text())).packet()
-    ip = IPv4(self.ip, self.destIP.text()).packet(socket.IPPROTO_UDP, 64, udp)
-    packet = eth+ip+udp
-    u = Unpacker(packet)
-    self.req_ether.setInfo(u.ether())
-    self.req_ipv4.setInfo(u.ipv4())
-    self.req_udp.setInfo(u.udp())
-    with socket.socket(socket.AF_PACKET, socket.SOCK_RAW, socket.htons(ETH_P_IP)) as s:
+    try:
+      self.check_input()
+    except InputCheckError as ice:
+      msg = QMessageBox()
+      msg.setIcon(QMessageBox.Warning)
+      msg.setWindowTitle('Invalid Input')
+      msg.setText('The following inputs are invalid:')
+      msg.setInformativeText('\n'.join(ice.msg))
+      msg.exec_()
+    else:
+      # getmac
+      s = socket.socket(socket.AF_PACKET, socket.SOCK_RAW, socket.htons(ETH_P_ARP))
+      p = Ether(self.mac, 'FF:FF:FF:FF:FF:FF').packet(ETH_P_ARP)+ARP(self.ip, self.mac).packet(ETH_P_IP, tar)
       s.bind((self.ifaceInput.text(), 0))
-      s.send(packet)
+      s.send(p)
+      mac = Unpacker(s.recv(1024)).arp()['SHA']
+      s.close()
+      # mac ok
+      print(f'Target MAC: {mac}')
+      eth = Ether(self.mac, mac).packet(ETH_P_IP)
+      udp = UDP(self.ip, int(self.srcPort.text()), self.destIP.text(), int(self.destPort.text())).packet()
+      ip = IPv4(self.ip, self.destIP.text()).packet(socket.IPPROTO_UDP, 64, udp)
+      packet = eth+ip+udp
+      u = Unpacker(packet)
+      self.req_ether.setInfo(u.ether())
+      self.req_ipv4.setInfo(u.ipv4())
+      self.req_udp.setInfo(u.udp())
+      with socket.socket(socket.AF_PACKET, socket.SOCK_RAW, socket.htons(ETH_P_IP)) as s:
+        s.bind((self.ifaceInput.text(), 0))
+        s.send(packet)
+  def check_input(self):
+    err = []
+
+    if self.ip == '' or self.mac == '': err.append('Local IP (Set Interface First)')
+
+    if self.srcPort.text().isdecimal() != True: err.append('Local Port (Not a Number)')
+    else:
+      if int(self.srcPort.text()) < 0 or int(self.srcPort.text()) > 65535: err.append('Local Port (Out of Range)')
+
+    if check_ip(self.destIP.text()) != True: err.append('Target IP (Not a IPv4 Address)')
+    
+    if self.destPort.text().isdecimal() != True: err.append('Target Port (Not a Number)')
+    else:
+      if int(self.destPort.text()) < 0 or int(self.destPort.text()) > 65535: err.append('Target Port (Out of Range)')
+
+    if len(err) > 0: raise InputCheckError(err)

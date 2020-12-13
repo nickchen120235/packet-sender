@@ -12,12 +12,14 @@ from views.widgets.info.ether import EtherInfo
 from views.widgets.info.arp import ARPInfo
 
 from lib.packet import Ether, ARP
-from lib.helper import ETH_P_ARP, Unpacker, ETH_P_IP
+from lib.helper import ETH_P_ARP, Unpacker, ETH_P_IP, check_ip, InputCheckError
 
 import netifaces
 
 class ARPView(QWidget):
   def __init__(self):
+    self.ip = ''
+    self.mac = ''
     super(ARPView, self).__init__()
     layout = QVBoxLayout()
     self.setLayout(layout)
@@ -98,6 +100,7 @@ class ARPView(QWidget):
     sendBtn  -> send
     """
     ifaceSet.clicked.connect(self.getLocalStat)
+    self.ifaceInput.returnPressed.connect(self.getLocalStat)
     sendBtn.clicked.connect(self.send)
     
   # slots
@@ -123,16 +126,34 @@ class ARPView(QWidget):
     print('send')
     tar = self.targetIP.text()
     print(f'Target: {tar}')
-    eth = Ether(self.mac, 'FF:FF:FF:FF:FF:FF').packet(ETH_P_ARP)
-    arp = ARP(self.ip, self.mac).packet(ETH_P_IP, tar)
-    packet = eth+arp
-    u = Unpacker(packet)
-    self.req_ether.setInfo(u.ether())
-    self.req_arp.setInfo(u.arp())
-    with socket.socket(socket.AF_PACKET, socket.SOCK_RAW, socket.htons(ETH_P_ARP)) as s:
-      s.bind((self.ifaceInput.text(), 0))
-      s.send(packet)
-      r = s.recv(1024)
-      ru = Unpacker(r)
-      self.res_ether.setInfo(ru.ether())
-      self.res_arp.setInfo(ru.arp())
+    try:
+      self.check_input()
+    except InputCheckError as ice:
+      msg = QMessageBox()
+      msg.setIcon(QMessageBox.Warning)
+      msg.setWindowTitle('Invalid Input')
+      msg.setText('The following inputs are invalid:')
+      msg.setInformativeText('\n'.join(ice.msg))
+      msg.exec_()
+    else:
+      eth = Ether(self.mac, 'FF:FF:FF:FF:FF:FF').packet(ETH_P_ARP)
+      arp = ARP(self.ip, self.mac).packet(ETH_P_IP, tar)
+      packet = eth+arp
+      u = Unpacker(packet)
+      self.req_ether.setInfo(u.ether())
+      self.req_arp.setInfo(u.arp())
+      with socket.socket(socket.AF_PACKET, socket.SOCK_RAW, socket.htons(ETH_P_ARP)) as s:
+        s.bind((self.ifaceInput.text(), 0))
+        s.send(packet)
+        r = s.recv(1024)
+        ru = Unpacker(r)
+        self.res_ether.setInfo(ru.ether())
+        self.res_arp.setInfo(ru.arp())
+  def check_input(self):
+    err = []
+    
+    if self.ip == '' or self.mac == '': err.append('Local IP & MAC (Set Interface First)')
+
+    if check_ip(self.targetIP.text()) != True: err.append('Target IP (Not a IPv4 Address)')
+    
+    if len(err) > 0: raise InputCheckError(err)

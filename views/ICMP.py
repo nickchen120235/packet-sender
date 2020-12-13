@@ -14,12 +14,14 @@ from views.widgets.info.ipv4 import IPv4Info
 from views.widgets.info.icmp import ICMPInfo
 
 from lib.packet import Ether, IPv4, ICMP, ARP
-from lib.helper import Unpacker, ETH_P_IP, ETH_P_ARP
+from lib.helper import Unpacker, ETH_P_IP, ETH_P_ARP, check_ip, InputCheckError
 
 _ops = ['Echo Reply (0)', 'Echo Request (8)']
 
 class ICMPView(QWidget):
   def __init__(self):
+    self.ip = ''
+    self.mac = ''
     super(ICMPView, self).__init__()
     layout = QVBoxLayout()
     self.setLayout(layout)
@@ -107,6 +109,7 @@ class ICMPView(QWidget):
     sendBtn  -> send
     """
     ifaceSet.clicked.connect(self.getLocalStat)
+    self.ifaceInput.returnPressed.connect(self.getLocalStat)
     sendBtn.clicked.connect(self.send)
 
   # slots
@@ -131,28 +134,51 @@ class ICMPView(QWidget):
     print('send')
     tar = self.tarIP.text()
     print(f'Target IP: {tar}')
-    # getmac
-    s = socket.socket(socket.AF_PACKET, socket.SOCK_RAW, socket.htons(ETH_P_ARP))
-    p = Ether(self.mac, 'FF:FF:FF:FF:FF:FF').packet(ETH_P_ARP)+ARP(self.ip, self.mac).packet(ETH_P_IP, tar)
-    s.bind((self.ifaceInput.text(), 0))
-    s.send(p)
-    mac = Unpacker(s.recv(1024)).arp()['SHA']
-    s.close()
-    # mac ok
-    print(f'Target MAC: {mac}')
-    eth = Ether(self.mac, mac).packet(ETH_P_IP)
-    print(f'Type: [{self.op.currentIndex()}] {self.op.currentText()}')
-    t = 0 if self.op.currentIndex() == 0 else 8
-    icmp = ICMP().packet(t, int(self.code.text()))
-    ipv4 = IPv4(self.ip, tar).packet(socket.IPPROTO_ICMP, 64, icmp)
-    p = eth+ipv4+icmp
-    self.req_ether.setInfo(Unpacker(p).ether())
-    self.req_ipv4.setInfo(Unpacker(p).ipv4())
-    self.req_icmp.setInfo(Unpacker(p).icmp())
-    with socket.socket(socket.AF_PACKET, socket.SOCK_RAW, socket.htons(ETH_P_IP)) as s:
+    try:
+      self.check_input()
+    except InputCheckError as ice:
+      msg = QMessageBox()
+      msg.setIcon(QMessageBox.Warning)
+      msg.setWindowTitle('Invalid Input')
+      msg.setText('The following inputs are invalid:')
+      msg.setInformativeText('\n'.join(ice.msg))
+      msg.exec_()
+    else:
+      # getmac
+      s = socket.socket(socket.AF_PACKET, socket.SOCK_RAW, socket.htons(ETH_P_ARP))
+      p = Ether(self.mac, 'FF:FF:FF:FF:FF:FF').packet(ETH_P_ARP)+ARP(self.ip, self.mac).packet(ETH_P_IP, tar)
       s.bind((self.ifaceInput.text(), 0))
       s.send(p)
-      ru = Unpacker(s.recv(1024))
-      self.res_ether.setInfo(ru.ether())
-      self.res_ipv4.setInfo(ru.ipv4())
-      self.res_icmp.setInfo(ru.icmp())
+      mac = Unpacker(s.recv(1024)).arp()['SHA']
+      s.close()
+      # mac ok
+      print(f'Target MAC: {mac}')
+      eth = Ether(self.mac, mac).packet(ETH_P_IP)
+      print(f'Type: [{self.op.currentIndex()}] {self.op.currentText()}')
+      t = 0 if self.op.currentIndex() == 0 else 8
+      icmp = ICMP().packet(t, int(self.code.text()))
+      ipv4 = IPv4(self.ip, tar).packet(socket.IPPROTO_ICMP, 64, icmp)
+      p = eth+ipv4+icmp
+      self.req_ether.setInfo(Unpacker(p).ether())
+      self.req_ipv4.setInfo(Unpacker(p).ipv4())
+      self.req_icmp.setInfo(Unpacker(p).icmp())
+      with socket.socket(socket.AF_PACKET, socket.SOCK_RAW, socket.htons(ETH_P_IP)) as s:
+        s.bind((self.ifaceInput.text(), 0))
+        s.send(p)
+        ru = Unpacker(s.recv(1024))
+        self.res_ether.setInfo(ru.ether())
+        self.res_ipv4.setInfo(ru.ipv4())
+        self.res_icmp.setInfo(ru.icmp())
+
+  def check_input(self):
+    err = []
+
+    if self.ip == '' or self.mac == '': err.append('Local IP (Set Interface First)')
+
+    if check_ip(self.tarIP.text()) != True: err.append('Target IP (Not a IPv4 Address)')
+    
+    if self.code.text().isdecimal() != True: err.append('Code (Not a Number)')
+    else:
+      if int(self.code.text()) < 0: err.append('Code (Out of Range)')
+
+    if len(err) > 0: raise InputCheckError(err)
