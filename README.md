@@ -30,6 +30,7 @@ nick@nick:~/packet-sender$ source ./venv/bin/activate
 2. Run `./main.py` with `sudo` using `./venv/bin/python3`: `sudo ./venv/bin/python3 ./main.py`
 
 ## Build Executable
+> Don't do this since it'll create a 131MB executable, which is kinda ridiculous.
 1. Install [`pyinstaller`](https://pyinstaller.readthedocs.io/en/stable/index.html): `sudo pip3 install pyinstaller`
 2. Run `pyinstall --onefile ./main.py`
 3. Run `./main` with `sudo`: `sudo ./main`
