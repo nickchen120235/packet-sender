@@ -21,4 +21,4 @@ class EtherInfo(QGroupBox):
   def setInfo(self, ether: dict):
     self.src.setText(ether['src'])
     self.dest.setText(ether['dest'])
-    self.proto.setText(ether['proto'])
+    self.proto.setText(ether['proto'] + ' (' + ('IPv4' if ether['proto'] == '0x0800' else ('ARP' if ether['proto'] == '0x0806' else 'Unknown')) + ')')
