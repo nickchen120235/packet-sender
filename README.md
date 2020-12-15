@@ -1,5 +1,5 @@
 # Packet Sender <!-- omit in toc -->
-
+Layer 2 packet constructor and sender using Python
 ## Table of Contents <!-- omit in toc -->
 - [Environment](#environment)
 - [Used Library](#used-library)
@@ -8,7 +8,6 @@
 - [Folder Structure](#folder-structure)
 - [API Reference](#api-reference)
 - [Program Usage](#program-usage)
----
 
 ## Environment
 - Ubuntu Desktop 20.04 with linux kernel `5.4.0-58-generic`
