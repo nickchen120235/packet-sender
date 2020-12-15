@@ -1,0 +1,51 @@
+# API Reference: `./lib/helper.py`
+## `Unpacker`: Extract Information from Raw Bytes
+- `Unpacker(packet: bytes) -> None`: Class constructor
+  - `packet`: Bytes recieved from socket or create by `./lib/packet.py` classes
+- `protocol() -> str`: Returns `'ARP'` if `EtherType` of the ethernet layer header is `0x0806`, else returns the corresponding `IPPROTO_*` in internet layer header
+- `ether() -> dict`: Parse the link layer as ethernet
+  - `'dest' -> str`: Destination MAC address
+  - `'src' -> str`: Source MAC address
+  - `'proto' -> str`: EtherType in hex format
+- `ipv4() -> dict`: Parses the internet layer as internet protocol version 4
+  - `'ver' -> int`: Version number (should be `4` anyway)
+  - `'IHL' -> int`: Internet Header Length
+  - `'length' -> int`: Size of the entire packet
+  - `'ID' -> str`: Identification in hex format
+  - `'ttl' -> int`: Time To Live
+  - `'protocol' -> str`: Protocol number of the transport layer in hex format
+  - `'checksum' -> str`: Checksum of the packet in hex format
+  - `'src' -> str`: Source IP address in the form of `XXX.XXX.XXX.XXX`
+  - `'dest' -> str`: Destination IP address in the form of `XXX.XXX.XXX.XXX`
+- `arp() -> dict`: Parses the internet layer as address resolution protocol
+  - `'HTYPE' -> int`: Hardware type (`1` for ethernet)
+  - `'PTYPE' -> int`: Internetwork protocol (should be `0x0800` (IPv4))
+  - `'HLEN' -> int`: Length of a hardware address (should be `6` for ethernet address)
+  - `'PLEN' -> int`: Length of a internetwork address (should be `4` for IPv4 address)
+  - `'OP' -> int`: Operation (`1` for request, `2` for reply)
+  - `'SHA' -> str`: Source MAC address in the form of `XX:XX:XX:XX:XX:XX`
+  - `'SPA' -> str`: Source IP address in the form of `XXX.XXX.XXX.XXX`
+  - `'THA' -> str`: Destination MAC address in the form of `XX:XX:XX:XX:XX:XX`
+  - `'TPA' -> str`: Destination IP address in the form of `XXX.XXX.XXX.XXX`
+- `tcp() -> dict`: Parses the transport layer as transmission control protocol
+  - `'srcPort' -> int`: Source port
+  - `'destPort' -> int`: Destination port
+  - `'seq_num' -> int`: Sequence number
+  - `'ack_num' -> int`: Acknowledgement number
+  - `'offset' -> int`: Data offset 
+  - `'ack' -> bool`: Whether `'ack'` is set
+  - `'rst' -> bool`: Whether `'rst'` is set
+  - `'syn' -> bool`: Whether `'syn'` is set
+  - `'fin' -> bool`: Whether `'fin'` is set
+  - `'window' -> int`: The size of the receive window
+  - `'checksum' -> str`: Checksum of the packet in hex format
+- `udp() -> dict`: Parses the transport layer as user datagram protocol
+  - `'srcPort' -> int`: Source port
+  - `'destPort' -> int`: Destination port
+  - `'length' -> int`: Length of the packet
+  - `'checksum' -> str`: Checksum of the packet in hex format
+- `icmp() -> dict`: Parses the transport layer as internet control message protocol
+  - `'TYPE' -> int`: ICMP type
+  - `'CODE' -> int`: ICMP subtype
+  - `'checksum' -> str`: Checksum of the packet in hex format
+  - `'DATA' -> str`: Rest of the header
