@@ -21,7 +21,7 @@ class ICMPInfo(QGroupBox):
     content.addRow('Data: ', self.DATA)
 
   def setInfo(self, icmp: dict):
-    self.TYPE.setText(str(icmp['TYPE']))
+    self.TYPE.setText(str(icmp['TYPE']) + ' (' + ('echo request' if icmp['TYPE'] == 8 else ('echo response' if icmp['TYPE'] == 0 else 'Unknown')) + ')')
     self.CODE.setText(str(icmp['CODE']))
     self.checksum.setText(icmp['checksum'])
     self.DATA.setText(icmp['DATA'])

@@ -36,7 +36,7 @@ class IPv4Info(QGroupBox):
     self.length.setText(str(ip['length']))
     self.id.setText(ip['ID'])
     self.ttl.setText(str(ip['ttl']))
-    self.proto.setText(ip['protocol'])
+    self.proto.setText(ip['protocol'] + ' (' + ('TCP' if ip['protocol'] == '0x06' else ('UDP' if ip['protocol'] == '0x11' else ('ICMP' if ip['protocol'] == '0x01' else 'Unknown'))) + ')')
     self.checksum.setText(ip['checksum'])
     self.src.setText(ip['src'])
     self.dest.setText(ip['dest'])
